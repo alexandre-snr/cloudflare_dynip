@@ -10,21 +10,23 @@ import (
 )
 
 const (
-	domain        = "example.com"
-	dnsRecordType = "A"
-	apiKey        = "API_KEY"
-	publicIPApi   = "https://api.ipify.org"
+	publicIPApi = "https://api.ipify.org"
 )
 
 func task() {
-	err := executeTask()
+	config, err := loadConfigFromEnv()
+	if err != nil {
+		fmt.Printf("Could not run task.\n%s\n", err.Error())
+		return
+	}
 
+	err = executeTask(config)
 	if err != nil {
 		fmt.Printf("Could not run task.\n%s\n", err.Error())
 	}
 }
 
-func executeTask() error {
+func executeTask(config config) error {
 	publicIP, err := getPublicIP()
 	if err != nil {
 		return err
@@ -32,12 +34,12 @@ func executeTask() error {
 
 	fmt.Printf("Current public IP is %s\n", publicIP)
 
-	api, err := cloudflare.NewWithAPIToken(apiKey)
+	api, err := cloudflare.NewWithAPIToken(config.APIKey)
 	if err != nil {
 		return err
 	}
 
-	zoneID, err := api.ZoneIDByName(domain)
+	zoneID, err := api.ZoneIDByName(config.Domain)
 	if err != nil {
 		return err
 	}
@@ -47,7 +49,7 @@ func executeTask() error {
 		return err
 	}
 
-	record, err := getDNSRecord(records)
+	record, err := getDNSRecord(records, config.Domain, config.DNSRecordType)
 	if err != nil {
 		return err
 	}
@@ -84,7 +86,7 @@ func getPublicIP() (string, error) {
 	return string(body), nil
 }
 
-func getDNSRecord(records []cloudflare.DNSRecord) (cloudflare.DNSRecord, error) {
+func getDNSRecord(records []cloudflare.DNSRecord, domain string, dnsRecordType string) (cloudflare.DNSRecord, error) {
 	for _, record := range records {
 		if record.Name == domain && record.Type == dnsRecordType {
 			return record, nil
