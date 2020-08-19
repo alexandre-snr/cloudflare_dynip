@@ -35,6 +35,8 @@ func gracefulShutdown(c *cron.Cron) {
 }
 
 func main() {
+	task()
+
 	c := scheduleTask()
 	idleMainThread()
 	gracefulShutdown(c)
