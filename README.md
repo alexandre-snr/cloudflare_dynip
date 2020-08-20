@@ -15,7 +15,7 @@ The first step is to get an API token from Cloudflare:
 You can now run cloudflare_dynip using the docker run:
 
 ```bash
-docker run -d -e DOMAIN=example.com -e API_TOKEN=yourkey cloudflare_dynip
+docker run -d -e DOMAIN=example.com -e API_TOKEN=yourkey alexandresnr/cloudflare_dynip:latest
 ```
 
 The check will be run every 30 minutes.
