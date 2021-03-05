@@ -13,6 +13,7 @@ const (
 	publicIPApi = "https://api.ipify.org"
 )
 
+var errNotOk = errors.New("status code is not 200")
 func task() {
 	config, err := loadConfigFromEnv()
 	if err != nil {
@@ -77,6 +78,9 @@ func getPublicIP() (string, error) {
 		return "", err
 	}
 	defer res.Body.Close()
+	if res.StatusCode != 200 {
+		return "", errNotOk
+	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
