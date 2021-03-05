@@ -8,9 +8,17 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
+func getCronString() string {
+	value, exists := os.LookupEnv("CRON_STRING")
+	if !exists {
+		return "@every 5m"
+	}
+	return value
+}
+
 func scheduleTask() *cron.Cron {
 	c := cron.New()
-	c.AddFunc("@every 30m", task)
+	c.AddFunc(getCronString(), task)
 	c.Start()
 	return c
 }
