@@ -2,8 +2,8 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	cloudflare "github.com/cloudflare/cloudflare-go"
@@ -14,16 +14,18 @@ const (
 )
 
 var errNotOk = errors.New("status code is not 200")
+var errRecordNotFound = errors.New("dns record not found")
+
 func task() {
 	config, err := loadConfigFromEnv()
 	if err != nil {
-		fmt.Printf("Could not run task.\n%s\n", err.Error())
+		log.Printf("Could not run task.\n%s\n", err.Error())
 		return
 	}
 
 	err = executeTask(config)
 	if err != nil {
-		fmt.Printf("Could not run task.\n%s\n", err.Error())
+		log.Printf("Could not run task.\n%s\n", err.Error())
 	}
 }
 
@@ -33,7 +35,7 @@ func executeTask(config config) error {
 		return err
 	}
 
-	fmt.Printf("Current public IP is %s\n", publicIP)
+	log.Printf("Current public IP is %s\n", publicIP)
 
 	api, err := cloudflare.NewWithAPIToken(config.APIKey)
 	if err != nil {
@@ -55,10 +57,10 @@ func executeTask(config config) error {
 		return err
 	}
 
-	fmt.Printf("Current DNS record is %s\n", record.Content)
+	log.Printf("Current DNS record is %s\n", record.Content)
 
 	if record.Content == publicIP {
-		fmt.Printf("No need to change.\n")
+		log.Printf("No need to change.\n")
 		return nil
 	}
 
@@ -68,7 +70,7 @@ func executeTask(config config) error {
 		return err
 	}
 
-	fmt.Printf("DNS record updated.\n")
+	log.Printf("DNS record updated.\n")
 	return nil
 }
 
@@ -97,5 +99,5 @@ func getDNSRecord(records []cloudflare.DNSRecord, domain string, dnsRecordType s
 		}
 	}
 
-	return cloudflare.DNSRecord{}, errors.New("DNS record not found")
+	return cloudflare.DNSRecord{}, errRecordNotFound
 }
